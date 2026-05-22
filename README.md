@@ -31,6 +31,29 @@ Everything is controlled from a compact, modern popup: see active and sleeping t
 
 4. After code changes, run `npm run build` again and click **Reload** on the extension card.
 
+## Project structure
+
+```
+src/
+  entries/              # Vite entry points (background, content, popup)
+  features/
+    tab-hibernate/      # Idle tab discard, alarms, stats API
+    tracker-blocker/    # declarativeNetRequest blocking rules
+    webgl-eviction/     # Content-script VRAM reclaim
+  popup/
+    PopupApp.tsx        # Popup shell and layout
+    components/         # TabRow, ThemeToggle, TimeoutDropdown
+    hooks/              # usePopupStats
+    lib/                # Chrome messaging, dev mocks
+    styles/             # Popup + theme CSS
+    theme/              # ThemeProvider
+  shared/               # Types, constants, icons, format helpers
+docs/                   # Research notes
+popup.source.html         # Vite popup HTML template
+public/manifest.json      # Extension manifest (copied on build)
+scripts/sync-extension.mjs
+```
+
 ## License
 
 MemPilot is licensed under the [GNU General Public License v3.0 or later](LICENSE) (GPL-3.0-or-later).

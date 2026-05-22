@@ -7,14 +7,19 @@ export default defineConfig({
   // Relative paths required for Chrome extension popup/assets
   base: './',
   plugins: [react()],
+  resolve: {
+    alias: {
+      '@': resolve(__dirname, 'src'),
+    },
+  },
   build: {
     // Emit one CSS file for the popup (required for Chrome extension)
     cssCodeSplit: false,
     rollupOptions: {
       input: {
         popup: resolve(__dirname, 'popup.source.html'),
-        background: resolve(__dirname, 'src/background/index.ts'),
-        content: resolve(__dirname, 'src/content/webglEvictor.ts'),
+        background: resolve(__dirname, 'src/entries/background/index.ts'),
+        content: resolve(__dirname, 'src/entries/content/webglEvictor.ts'),
       },
       output: {
         entryFileNames: '[name].js',

@@ -1,13 +1,11 @@
-import { initMemoryManager } from './memoryManager';
-import { initTrackerBlocker } from './trackerBlocker';
+import { initTabHibernate } from '../../features/tab-hibernate';
+import { initTrackerBlocker } from '../../features/tracker-blocker';
 
 console.log('MemPilot: Background Service Worker Started');
 
-// Initialize all subsystems
-initMemoryManager();
+initTabHibernate();
 initTrackerBlocker();
 
-// Handle extension install/update
 chrome.runtime.onInstalled.addListener((details) => {
   if (details.reason === 'install') {
     console.log('MemPilot: Extension installed for the first time');

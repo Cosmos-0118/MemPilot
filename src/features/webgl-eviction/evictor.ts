@@ -1,24 +1,16 @@
-// src/content/webglEvictor.ts
-// Hybrid WebGL Eviction Engine
-// Safely evicts GPU VRAM when tabs are hidden, restores when visible
-// IMPORTANT: We do NOT call getContext() ourselves as that can interfere
-// with existing contexts. Instead, we intercept context creation.
-
 (() => {
-  // Store references to WebGL contexts that were created on this page
   const trackedContexts: Array<{
     canvas: HTMLCanvasElement;
     ext: WEBGL_lose_context;
     wasLost: boolean;
   }> = [];
 
-  // Intercept canvas.getContext to track WebGL contexts automatically
   const originalGetContext = HTMLCanvasElement.prototype.getContext;
 
   HTMLCanvasElement.prototype.getContext = function (
     this: HTMLCanvasElement,
     contextId: string,
-    options?: WebGLContextAttributes
+    options?: WebGLContextAttributes,
   ): RenderingContext | null {
     const ctx = originalGetContext.call(this, contextId, options);
 
@@ -27,8 +19,7 @@
       const ext = gl.getExtension('WEBGL_lose_context');
 
       if (ext) {
-        // Check if we're already tracking this canvas
-        const alreadyTracked = trackedContexts.some(tc => tc.canvas === this);
+        const alreadyTracked = trackedContexts.some((tc) => tc.canvas === this);
         if (!alreadyTracked) {
           trackedContexts.push({
             canvas: this,
@@ -44,7 +35,6 @@
 
   let isEvictionEnabled = true;
 
-  // Load setting and listen for changes
   try {
     if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.local) {
       chrome.storage.local.get('webgl-eviction-enabled', (result) => {
@@ -56,7 +46,6 @@
       chrome.storage.onChanged.addListener((changes, areaName) => {
         if (areaName === 'local' && changes['webgl-eviction-enabled']) {
           isEvictionEnabled = changes['webgl-eviction-enabled'].newValue !== false;
-          // If disabled, restore any lost contexts immediately
           if (!isEvictionEnabled) {
             for (const entry of trackedContexts) {
               if (entry.wasLost) {
@@ -74,7 +63,7 @@
       });
     }
   } catch {
-    // Fail silently outside extension environment
+    /* fail silently outside extension environment */
   }
 
   const canEvictOnPage = (): boolean => {
@@ -86,13 +75,11 @@
     }
   };
 
-  // Listen for visibility changes
   document.addEventListener('visibilitychange', () => {
     if (!canEvictOnPage()) return;
 
     if (document.visibilityState === 'hidden') {
       if (!isEvictionEnabled) return;
-      // Evict all tracked WebGL contexts
       for (const entry of trackedContexts) {
         if (!entry.wasLost) {
           try {
@@ -100,12 +87,11 @@
             entry.wasLost = true;
             console.log('MemPilot: Evicted WebGL context from hidden tab to save VRAM.');
           } catch {
-            // Context may already be lost or canvas removed from DOM
+            /* context may already be lost or canvas removed from DOM */
           }
         }
       }
     } else if (document.visibilityState === 'visible') {
-      // Restore all evicted contexts
       for (const entry of trackedContexts) {
         if (entry.wasLost) {
           try {
@@ -113,14 +99,13 @@
             entry.wasLost = false;
             console.log('MemPilot: Restored WebGL context in active tab.');
           } catch {
-            // Restoration may fail if canvas was removed
+            /* restoration may fail if canvas was removed */
           }
         }
       }
     }
   });
 
-  // Clean up entries when canvases are removed from DOM
   const observer = new MutationObserver(() => {
     for (let i = trackedContexts.length - 1; i >= 0; i--) {
       if (!document.contains(trackedContexts[i].canvas)) {

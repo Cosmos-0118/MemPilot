@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
+import { STORAGE_KEYS } from '../../shared/constants/storage';
 
 export type Theme = 'light' | 'dark' | 'vampire';
 
@@ -9,24 +10,21 @@ interface ThemeContextType {
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
-const STORAGE_KEY = 'mempilot-theme';
-
 export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [theme, setThemeState] = useState<Theme>('dark');
 
   useEffect(() => {
-    // Load persisted theme
     try {
       if (typeof chrome !== 'undefined' && chrome?.storage?.local) {
-        chrome.storage.local.get([STORAGE_KEY], (result: Record<string, unknown>) => {
-          const saved = result[STORAGE_KEY];
+        chrome.storage.local.get([STORAGE_KEYS.theme], (result: Record<string, unknown>) => {
+          const saved = result[STORAGE_KEYS.theme];
           if (saved === 'light' || saved === 'dark' || saved === 'vampire') {
             setThemeState(saved);
           }
         });
       }
     } catch {
-      // Not running in extension context — use default
+      /* not running in extension context */
     }
   }, []);
 
@@ -38,10 +36,10 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     setThemeState(newTheme);
     try {
       if (typeof chrome !== 'undefined' && chrome?.storage?.local) {
-        chrome.storage.local.set({ [STORAGE_KEY]: newTheme });
+        chrome.storage.local.set({ [STORAGE_KEYS.theme]: newTheme });
       }
     } catch {
-      // Ignore
+      /* ignore */
     }
   }, []);
 
@@ -52,7 +50,6 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   );
 };
 
-// Hook export alongside provider — intentional for a small extension popup
 // eslint-disable-next-line react-refresh/only-export-components
 export const useTheme = (): ThemeContextType => {
   const context = useContext(ThemeContext);

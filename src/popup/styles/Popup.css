@@ -774,8 +774,8 @@ input:checked + .slider::before {
 .timeout-dropdown {
   position: relative;
   width: 100%;
-  max-width: 152px;
-  margin-top: 2px;
+  max-width: 168px;
+  margin-top: 4px;
 }
 
 .timeout-dropdown-trigger {
@@ -784,10 +784,10 @@ input:checked + .slider::before {
   justify-content: space-between;
   gap: 8px;
   width: 100%;
-  height: 28px;
-  padding: 0 10px 0 12px;
+  height: 30px;
+  padding: 0 12px;
   font-family: var(--font-family);
-  font-size: 0.7rem;
+  font-size: 0.72rem;
   font-weight: 600;
   color: var(--text-primary);
   background-color: var(--surface-sunken);
@@ -809,7 +809,7 @@ input:checked + .slider::before {
 .timeout-dropdown-trigger:focus-visible {
   border-color: var(--accent-primary);
   background-color: var(--surface-default);
-  box-shadow: 0 0 0 3px var(--accent-muted);
+  box-shadow: 0 0 0 2px var(--accent-muted);
   outline: none;
 }
 
@@ -822,6 +822,8 @@ input:checked + .slider::before {
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  width: 14px;
+  height: 14px;
   color: var(--text-tertiary);
   transition: transform var(--transition-fast), color var(--transition-fast);
 }
@@ -831,26 +833,41 @@ input:checked + .slider::before {
   color: var(--accent-primary);
 }
 
-.timeout-dropdown-menu {
-  position: absolute;
-  bottom: calc(100% + 6px);
-  left: 0;
-  right: 0;
-  z-index: 30;
+/* Menu rendered via portal on document.body — avoids popup overflow clipping */
+.timeout-dropdown-menu--portal {
   margin: 0;
-  padding: 4px;
+  padding: 5px;
   list-style: none;
   background-color: var(--surface-elevated);
-  border: 1px solid var(--border-default);
+  border: 1px solid var(--border-strong);
   border-radius: var(--radius-md);
   box-shadow: var(--shadow-lg);
-  animation: dropdownIn var(--transition-fast) ease-out;
+  box-sizing: border-box;
 }
 
-@keyframes dropdownIn {
+.timeout-dropdown-menu--portal.opens-up {
+  animation: dropdownOpenUp var(--transition-fast) ease-out;
+}
+
+.timeout-dropdown-menu--portal.opens-down {
+  animation: dropdownOpenDown var(--transition-fast) ease-out;
+}
+
+@keyframes dropdownOpenUp {
   from {
     opacity: 0;
-    transform: translateY(4px);
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes dropdownOpenDown {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
   }
   to {
     opacity: 1;
@@ -864,9 +881,9 @@ input:checked + .slider::before {
   justify-content: space-between;
   gap: 8px;
   width: 100%;
-  padding: 7px 10px;
+  padding: 8px 10px;
   font-family: var(--font-family);
-  font-size: 0.7rem;
+  font-size: 0.72rem;
   font-weight: 600;
   color: var(--text-secondary);
   background: none;
@@ -895,5 +912,6 @@ input:checked + .slider::before {
 .timeout-dropdown-check {
   display: inline-flex;
   flex-shrink: 0;
+  align-items: center;
   color: var(--success);
 }
