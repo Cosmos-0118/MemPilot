@@ -1,0 +1,293 @@
+/* ============================================================
+   MemPilot Design Token System
+   Comprehensive semantic tokens for full visual transformation
+   ============================================================ */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+
+/* ---- Animation Keyframes ---- */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes pulse-glow {
+  0%, 100% { opacity: 0.6; }
+  50% { opacity: 1; }
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes countUp {
+  from { opacity: 0; transform: scale(0.8); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+/* ---- Root Defaults (fallback) ---- */
+:root {
+  /* Typography */
+  --font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --font-mono: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace;
+
+  /* Sizing */
+  --popup-width: 380px;
+  --popup-max-height: 560px;
+
+  /* Radii */
+  --radius-xs: 4px;
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --radius-xl: 20px;
+  --radius-full: 9999px;
+
+  /* Spacing */
+  --space-xs: 4px;
+  --space-sm: 8px;
+  --space-md: 12px;
+  --space-lg: 16px;
+  --space-xl: 20px;
+  --space-2xl: 24px;
+
+  /* Transitions */
+  --transition-fast: 0.15s ease;
+  --transition-normal: 0.25s ease;
+  --transition-slow: 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* ============================================================
+   LIGHT THEME
+   Clean, airy, professional — inspired by Linear/Vercel
+   ============================================================ */
+[data-theme="light"] {
+  --background-primary: #f8f9fb;
+  --background-secondary: #f0f2f5;
+  --background-tertiary: #e8ecf1;
+
+  --surface-default: #ffffff;
+  --surface-elevated: #ffffff;
+  --surface-sunken: #f0f2f5;
+
+  --text-primary: #111827;
+  --text-secondary: #6b7280;
+  --text-tertiary: #9ca3af;
+  --text-disabled: #d1d5db;
+  --text-inverse: #ffffff;
+
+  --border-default: #e5e7eb;
+  --border-subtle: #f0f2f5;
+  --border-strong: #d1d5db;
+
+  --accent-primary: #4f46e5;
+  --accent-secondary: #4338ca;
+  --accent-muted: rgba(79, 70, 229, 0.1);
+  --accent-subtle: rgba(79, 70, 229, 0.06);
+
+  --success: #059669;
+  --success-muted: rgba(5, 150, 105, 0.1);
+  --warning: #d97706;
+  --warning-muted: rgba(217, 119, 6, 0.1);
+  --danger: #dc2626;
+  --danger-muted: rgba(220, 38, 38, 0.1);
+
+  --hover-overlay: rgba(0, 0, 0, 0.04);
+  --active-overlay: rgba(0, 0, 0, 0.08);
+  --focus-ring: rgba(79, 70, 229, 0.4);
+
+  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.04);
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04);
+  --shadow-md: 0 4px 8px -2px rgba(0, 0, 0, 0.08), 0 2px 4px -2px rgba(0, 0, 0, 0.04);
+  --shadow-lg: 0 12px 24px -4px rgba(0, 0, 0, 0.1), 0 4px 8px -2px rgba(0, 0, 0, 0.04);
+
+  --glow-accent: 0 0 20px rgba(79, 70, 229, 0.15);
+  --glow-success: 0 0 20px rgba(5, 150, 105, 0.15);
+
+  --scrollbar-track: #f0f2f5;
+  --scrollbar-thumb: #d1d5db;
+  --scrollbar-thumb-hover: #9ca3af;
+}
+
+/* ============================================================
+   DARK THEME
+   Deep, sleek, immersive — inspired by Raycast/Arc
+   ============================================================ */
+[data-theme="dark"] {
+  --background-primary: #0c0e16;
+  --background-secondary: #12151f;
+  --background-tertiary: #181c28;
+
+  --surface-default: #161924;
+  --surface-elevated: #1c2030;
+  --surface-sunken: #0c0e16;
+
+  --text-primary: #e8eaf0;
+  --text-secondary: #7c8198;
+  --text-tertiary: #4e5469;
+  --text-disabled: #333850;
+  --text-inverse: #0c0e16;
+
+  --border-default: #252a3a;
+  --border-subtle: #1c2030;
+  --border-strong: #333850;
+
+  --accent-primary: #818cf8;
+  --accent-secondary: #6366f1;
+  --accent-muted: rgba(129, 140, 248, 0.12);
+  --accent-subtle: rgba(129, 140, 248, 0.06);
+
+  --success: #34d399;
+  --success-muted: rgba(52, 211, 153, 0.12);
+  --warning: #fbbf24;
+  --warning-muted: rgba(251, 191, 36, 0.12);
+  --danger: #f87171;
+  --danger-muted: rgba(248, 113, 113, 0.12);
+
+  --hover-overlay: rgba(255, 255, 255, 0.04);
+  --active-overlay: rgba(255, 255, 255, 0.08);
+  --focus-ring: rgba(129, 140, 248, 0.5);
+
+  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.3);
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.4), 0 1px 2px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 4px 8px -2px rgba(0, 0, 0, 0.5), 0 2px 4px -2px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 12px 24px -4px rgba(0, 0, 0, 0.6), 0 4px 8px -2px rgba(0, 0, 0, 0.4);
+
+  --glow-accent: 0 0 24px rgba(129, 140, 248, 0.2);
+  --glow-success: 0 0 24px rgba(52, 211, 153, 0.2);
+
+  --scrollbar-track: #12151f;
+  --scrollbar-thumb: #333850;
+  --scrollbar-thumb-hover: #4e5469;
+}
+
+/* ============================================================
+   VAMPIRE THEME (Black & Red)
+   Bold, aggressive, cinematic — inspired by Opera GX
+   ============================================================ */
+[data-theme="vampire"] {
+  --background-primary: #000000;
+  --background-secondary: #080808;
+  --background-tertiary: #111111;
+
+  --surface-default: #0d0d0d;
+  --surface-elevated: #141414;
+  --surface-sunken: #000000;
+
+  --text-primary: #f2f2f2;
+  --text-secondary: #8a8a8a;
+  --text-tertiary: #555555;
+  --text-disabled: #333333;
+  --text-inverse: #000000;
+
+  --border-default: #1f1f1f;
+  --border-subtle: #141414;
+  --border-strong: #2a2a2a;
+
+  --accent-primary: #ef4444;
+  --accent-secondary: #dc2626;
+  --accent-muted: rgba(239, 68, 68, 0.15);
+  --accent-subtle: rgba(239, 68, 68, 0.07);
+
+  --success: #22c55e;
+  --success-muted: rgba(34, 197, 94, 0.12);
+  --warning: #eab308;
+  --warning-muted: rgba(234, 179, 8, 0.12);
+  --danger: #ef4444;
+  --danger-muted: rgba(239, 68, 68, 0.12);
+
+  --hover-overlay: rgba(255, 255, 255, 0.05);
+  --active-overlay: rgba(255, 255, 255, 0.08);
+  --focus-ring: rgba(239, 68, 68, 0.5);
+
+  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.5);
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.6), 0 1px 2px rgba(0, 0, 0, 0.5);
+  --shadow-md: 0 4px 8px -2px rgba(0, 0, 0, 0.7), 0 2px 4px -2px rgba(0, 0, 0, 0.5);
+  --shadow-lg: 0 12px 24px -4px rgba(239, 68, 68, 0.1), 0 4px 8px -2px rgba(0, 0, 0, 0.6);
+
+  --glow-accent: 0 0 30px rgba(239, 68, 68, 0.2);
+  --glow-success: 0 0 24px rgba(34, 197, 94, 0.2);
+
+  --scrollbar-track: #080808;
+  --scrollbar-thumb: #2a2a2a;
+  --scrollbar-thumb-hover: #444444;
+}
+
+/* ============================================================
+   Base Styles
+   ============================================================ */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+/*
+ * Chrome extension popups do not support reliable vw/vh sizing.
+ * Use fixed pixel dimensions so the popup never collapses to a thin strip.
+ */
+html {
+  font-size: 16px;
+  width: var(--popup-width);
+  min-width: var(--popup-width);
+  max-width: var(--popup-width);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  overflow-x: hidden;
+}
+
+#root {
+  width: var(--popup-width);
+  min-width: var(--popup-width);
+  max-width: var(--popup-width);
+  display: block;
+}
+
+body {
+  font-family: var(--font-family);
+  background-color: var(--background-primary);
+  color: var(--text-primary);
+  width: var(--popup-width);
+  min-width: var(--popup-width);
+  max-width: var(--popup-width);
+  min-height: 320px;
+  max-height: var(--popup-max-height);
+  margin: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  transition: background-color var(--transition-normal), color var(--transition-normal);
+  line-height: 1.5;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: var(--scrollbar-track); }
+::-webkit-scrollbar-thumb {
+  background: var(--scrollbar-thumb);
+  border-radius: var(--radius-full);
+}
+::-webkit-scrollbar-thumb:hover { background: var(--scrollbar-thumb-hover); }
+
+/* Focus visible */
+:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 2px;
+}
+
+/* Selection */
+::selection {
+  background: var(--accent-muted);
+  color: var(--accent-primary);
+}
