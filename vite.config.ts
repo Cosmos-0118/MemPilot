@@ -17,7 +17,7 @@ export default defineConfig({
     cssCodeSplit: false,
     rollupOptions: {
       input: {
-        popup: resolve(__dirname, 'popup.source.html'),
+        popup: resolve(__dirname, 'index.html'),
         background: resolve(__dirname, 'src/entries/background/index.ts'),
         content: resolve(__dirname, 'src/entries/content/webglEvictor.ts'),
       },

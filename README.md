@@ -24,10 +24,10 @@ Everything is controlled from a compact, modern popup: see active and sleeping t
 3. Click **Load unpacked** and select this project folder:
 
    ```
-   ~/Developer/MemPilot
+   ~/Developer/MemPilot/dist
    ```
 
-   `npm run build` compiles `popup.source.html` and copies the built `index.html`, `popup.js`, CSS, and related files to the project root so Chrome can load it.
+   `npm run build` compiles `index.html` and outputs all assets, `popup.js`, CSS, and related files to the `dist` directory so Chrome can load it.
 
 4. After code changes, run `npm run build` again and click **Reload** on the extension card.
 
@@ -49,9 +49,8 @@ src/
     theme/              # ThemeProvider
   shared/               # Types, constants, icons, format helpers
 docs/                   # Research notes
-popup.source.html         # Vite popup HTML template
-public/manifest.json      # Extension manifest (copied on build)
-scripts/sync-extension.mjs
+index.html              # Vite popup HTML template
+public/manifest.json    # Extension manifest (copied on build)
 ```
 
 ## License

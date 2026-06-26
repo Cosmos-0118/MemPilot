@@ -6,7 +6,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc -b && vite build && node scripts/sync-extension.mjs",
+    "build": "tsc -b && vite build",
     "build:extension": "npm run build",
     "lint": "eslint .",
     "preview": "vite preview"
