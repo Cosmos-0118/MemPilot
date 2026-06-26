@@ -1,5 +1,4 @@
 import { ALARMS, HIBERNATE_DEFAULTS, STORAGE_KEYS } from '../../shared/constants/storage';
-import type { PopupMessage } from '../../shared/types/stats';
 import { initTrackerBlocker } from '../tracker-blocker';
 import {
   discardAllInactiveTabs,
@@ -8,7 +7,8 @@ import {
   seedExistingTabs,
 } from './discard';
 import { getStats } from './stats';
-import { loadState, saveState } from './state';
+import { loadState, saveState, updateTabState, deleteTabState } from './state';
+import { addLedgerEntry } from '../../shared/db';
 
 export const initTabHibernate = (): void => {
   console.log('MemPilot: Tab Hibernate Initialized');
@@ -26,25 +26,39 @@ export const initTabHibernate = (): void => {
   });
 
   chrome.tabs.onActivated.addListener(async (activeInfo: { tabId: number; windowId: number }) => {
-    const state = await loadState();
-    state.tabLastActive[activeInfo.tabId] = Date.now();
-    await saveState(state);
+    await updateTabState(activeInfo.tabId, { lastActive: Date.now() });
   });
 
   chrome.tabs.onCreated.addListener(async (tab) => {
     if (!tab.id) return;
-    const state = await loadState();
-    state.tabLastActive[tab.id] = Date.now();
-    await saveState(state);
+    await updateTabState(tab.id, { lastActive: Date.now() });
   });
 
   chrome.tabs.onRemoved.addListener(async (tabId: number) => {
-    const state = await loadState();
-    delete state.tabLastActive[tabId];
-    await saveState(state);
+    await deleteTabState(tabId);
   });
 
-  chrome.runtime.onMessage.addListener((message: PopupMessage, _sender, sendResponse) => {
+  chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
+    if ('discarded' in changeInfo || 'frozen' in changeInfo) {
+      if (changeInfo.discarded || changeInfo.frozen) {
+        const action = changeInfo.discarded ? 'discard' : 'freeze';
+        await addLedgerEntry({
+          timestamp: Date.now(),
+          action,
+          source: 'native', // MemPilot's discards will record their own, or we can just rely on this
+          tabId,
+          url: tab.url || '',
+        });
+      }
+    }
+  });
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  chrome.runtime.onMessage.addListener((message: any, _sender, sendResponse) => {
+    if (message.type === 'UPDATE_TAB_STATE' && _sender.tab?.id) {
+      updateTabState(_sender.tab.id, { isDirty: (message as { isDirty: boolean }).isDirty });
+      return false;
+    }
     if (message.type === 'GET_STATS') {
       getStats().then(sendResponse);
       return true;

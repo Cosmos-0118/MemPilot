@@ -47,7 +47,6 @@ export const TimeoutDropdown: React.FC<{
 
   useLayoutEffect(() => {
     if (!isOpen) {
-      setMenuStyle(null);
       return;
     }
     updateMenuPosition();

@@ -239,9 +239,6 @@
  */
 html {
   font-size: 16px;
-  width: var(--popup-width);
-  min-width: var(--popup-width);
-  max-width: var(--popup-width);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
@@ -249,9 +246,6 @@ html {
 }
 
 #root {
-  width: var(--popup-width);
-  min-width: var(--popup-width);
-  max-width: var(--popup-width);
   display: block;
 }
 
@@ -259,11 +253,6 @@ body {
   font-family: var(--font-family);
   background-color: var(--background-primary);
   color: var(--text-primary);
-  width: var(--popup-width);
-  min-width: var(--popup-width);
-  max-width: var(--popup-width);
-  min-height: 320px;
-  max-height: var(--popup-max-height);
   margin: 0;
   overflow-x: hidden;
   overflow-y: auto;

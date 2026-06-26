@@ -7,6 +7,10 @@ initTabHibernate();
 initTrackerBlocker();
 
 chrome.runtime.onInstalled.addListener((details) => {
+  chrome.storage.session.setAccessLevel({ accessLevel: 'TRUSTED_AND_UNTRUSTED_CONTEXTS' });
+  if (chrome.sidePanel && chrome.sidePanel.setPanelBehavior) {
+    chrome.sidePanel.setPanelBehavior({ openPanelOnActionClick: true }).catch(console.error);
+  }
   if (details.reason === 'install') {
     console.log('MemPilot: Extension installed for the first time');
   } else if (details.reason === 'update') {

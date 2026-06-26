@@ -1,23 +1,21 @@
-import { loadState, saveState } from './state';
-import { estimateTabMemoryMB, getTabLastActive, isDiscardableTab } from './tabRules';
+import { loadState, saveState, getTabRegistry, updateTabState, deleteTabState } from './state';
+import { estimateTabMemoryMB, getTabLastActive, isEligibleForBackgroundReclaim } from './tabRules';
+import { getPressureTier } from './pressure';
+import { addLedgerEntry } from '../../shared/db';
 
 export const seedExistingTabs = async (): Promise<void> => {
-  const state = await loadState();
+  const registry = await getTabRegistry();
   const now = Date.now();
-  let changed = false;
 
   try {
     const tabs = await chrome.tabs.query({});
     for (const tab of tabs) {
       if (!tab.id) continue;
-      if (state.tabLastActive[tab.id]) continue;
+      if (registry[tab.id]) continue;
 
-      const lastActive = getTabLastActive(tab, state) ?? now;
-      state.tabLastActive[tab.id] = lastActive;
-      changed = true;
+      const lastActive = getTabLastActive(tab) ?? now;
+      await updateTabState(tab.id, { lastActive });
     }
-
-    if (changed) await saveState(state);
   } catch (e) {
     console.warn('MemPilot: Failed to seed existing tabs', e);
   }
@@ -27,8 +25,15 @@ export const discardIdleTabs = async (): Promise<void> => {
   const state = await loadState();
   if (!state.isEnabled) return;
 
+  const registry = await getTabRegistry();
+  const pressure = await getPressureTier();
+  
+  let pressureMultiplier = 1;
+  if (pressure === 'moderate') pressureMultiplier = 0.5;
+  if (pressure === 'critical') pressureMultiplier = 0.1;
+
   const now = Date.now();
-  const idleThreshold = state.idleTimeoutMinutes * 60 * 1000;
+  const idleThreshold = state.idleTimeoutMinutes * 60 * 1000 * pressureMultiplier;
 
   try {
     const tabs = await chrome.tabs.query({
@@ -41,13 +46,16 @@ export const discardIdleTabs = async (): Promise<void> => {
     let memorySavedThisCycle = 0;
 
     for (const tab of tabs) {
-      if (!isDiscardableTab(tab) || tab.id === undefined) continue;
+      if (!tab.id) continue;
       const tabId = tab.id;
+      const regEntry = registry[tabId];
 
-      const lastActive = getTabLastActive(tab, state);
+      if (!isEligibleForBackgroundReclaim(tab, regEntry)) continue;
+
+      const lastActive = getTabLastActive(tab, regEntry);
 
       if (!lastActive) {
-        state.tabLastActive[tabId] = now;
+        await updateTabState(tabId, { lastActive: now });
         continue;
       }
 
@@ -57,9 +65,16 @@ export const discardIdleTabs = async (): Promise<void> => {
           discardedCount++;
           const memSaved = estimateTabMemoryMB();
           memorySavedThisCycle += memSaved;
-          delete state.tabLastActive[tabId];
+          await deleteTabState(tabId);
+          await addLedgerEntry({
+            timestamp: now,
+            action: 'discard',
+            source: 'mempilot',
+            tabId,
+            url: tab.url || '',
+          });
           console.log(
-            `MemPilot: Discarded tab ${tab.id} (${tab.title?.substring(0, 40)}), est. ${memSaved}MB saved`,
+            `MemPilot: Discarded tab ${tab.id} (${tab.title?.substring(0, 40)}), est. ${memSaved}MB saved [Pressure: ${pressure}]`,
           );
         } catch (e) {
           console.warn(`MemPilot: Failed to discard tab ${tab.id}`, e);
@@ -70,44 +85,63 @@ export const discardIdleTabs = async (): Promise<void> => {
     if (discardedCount > 0) {
       state.totalDiscarded += discardedCount;
       state.totalMemorySavedMB += memorySavedThisCycle;
+      await saveState(state);
     }
 
     const currentTabs = await chrome.tabs.query({});
     const liveTabIds = new Set(currentTabs.map((t) => t.id).filter(Boolean));
 
-    for (const idStr of Object.keys(state.tabLastActive)) {
+    for (const idStr of Object.keys(registry)) {
       const id = Number(idStr);
       if (!liveTabIds.has(id)) {
-        delete state.tabLastActive[id];
+        await deleteTabState(id);
       }
     }
-
-    await saveState(state);
   } catch (e) {
     console.error('MemPilot: Error in discardIdleTabs', e);
   }
 };
 
 export const discardTabById = async (tabId: number): Promise<void> => {
+  const tab = await chrome.tabs.get(tabId);
   await chrome.tabs.discard(tabId);
   const state = await loadState();
   state.totalDiscarded++;
   state.totalMemorySavedMB += estimateTabMemoryMB();
-  delete state.tabLastActive[tabId];
+  await deleteTabState(tabId);
   await saveState(state);
+  await addLedgerEntry({
+    timestamp: Date.now(),
+    action: 'discard',
+    source: 'mempilot',
+    tabId,
+    url: tab.url || '',
+  });
 };
 
 export const discardAllInactiveTabs = async (): Promise<void> => {
   const tabs = await chrome.tabs.query({ active: false, discarded: false, audible: false });
   const state = await loadState();
+  const registry = await getTabRegistry();
+  const now = Date.now();
+
   for (const tab of tabs) {
-    if (!isDiscardableTab(tab) || tab.id === undefined) continue;
+    if (!tab.id) continue;
     const tabId = tab.id;
+    if (!isEligibleForBackgroundReclaim(tab, registry[tabId])) continue;
+    
     try {
       await chrome.tabs.discard(tabId);
       state.totalDiscarded++;
       state.totalMemorySavedMB += estimateTabMemoryMB();
-      delete state.tabLastActive[tabId];
+      await deleteTabState(tabId);
+      await addLedgerEntry({
+        timestamp: now,
+        action: 'discard',
+        source: 'mempilot',
+        tabId,
+        url: tab.url || '',
+      });
     } catch {
       /* tab may have closed or be protected */
     }

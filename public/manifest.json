@@ -6,6 +6,9 @@
   "action": {
     "default_popup": "index.html"
   },
+  "side_panel": {
+    "default_path": "index.html"
+  },
   "background": {
     "service_worker": "background.js",
     "type": "module"
@@ -21,9 +24,26 @@
     "tabs",
     "storage",
     "declarativeNetRequest",
+    "declarativeNetRequestFeedback",
     "alarms",
-    "scripting"
+    "scripting",
+    "system.memory",
+    "sidePanel"
   ],
+  "declarative_net_request": {
+    "rule_resources": [
+      {
+        "id": "easyprivacy_trackers",
+        "enabled": true,
+        "path": "rules/easyprivacy_trackers.json"
+      },
+      {
+        "id": "easyprivacy_analytics",
+        "enabled": false,
+        "path": "rules/easyprivacy_analytics.json"
+      }
+    ]
+  },
   "host_permissions": [
     "<all_urls>"
   ]

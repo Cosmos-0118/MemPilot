@@ -1,11 +1,12 @@
 import { STORAGE_KEYS } from '../../shared/constants/storage';
 import type { PopupStats } from '../../shared/types/stats';
 import { getBlockedDomainCount } from '../tracker-blocker';
-import { loadState } from './state';
+import { loadState, getTabRegistry } from './state';
 import { estimateTabMemoryMB, getTabLastActive } from './tabRules';
 
 export const getStats = async (): Promise<PopupStats> => {
   const state = await loadState();
+  const registry = await getTabRegistry();
 
   try {
     const allTabs = await chrome.tabs.query({});
@@ -27,7 +28,7 @@ export const getStats = async (): Promise<PopupStats> => {
       totalDiscarded: state.totalDiscarded,
       totalMemorySavedMB: state.totalMemorySavedMB,
       currentlySleepingMB,
-      blockedDomainCount: getBlockedDomainCount(),
+      blockedDomainCount: await getBlockedDomainCount(),
       idleTimeoutMinutes: state.idleTimeoutMinutes,
       isEnabled: state.isEnabled,
       trackerBlockingEnabled,
@@ -41,7 +42,7 @@ export const getStats = async (): Promise<PopupStats> => {
         active: t.active || false,
         pinned: t.pinned || false,
         audible: t.audible || false,
-        lastActive: t.id ? getTabLastActive(t, state) : undefined,
+        lastActive: t.id ? getTabLastActive(t, registry[t.id]) : undefined,
       })),
     };
   } catch (e) {
@@ -53,7 +54,7 @@ export const getStats = async (): Promise<PopupStats> => {
       totalDiscarded: state.totalDiscarded,
       totalMemorySavedMB: state.totalMemorySavedMB,
       currentlySleepingMB: 0,
-      blockedDomainCount: getBlockedDomainCount(),
+      blockedDomainCount: await getBlockedDomainCount(),
       idleTimeoutMinutes: state.idleTimeoutMinutes,
       isEnabled: state.isEnabled,
       trackerBlockingEnabled: true,

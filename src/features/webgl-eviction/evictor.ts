@@ -50,6 +50,7 @@
             for (const entry of trackedContexts) {
               if (entry.wasLost) {
                 try {
+                  entry.canvas.style.backgroundImage = '';
                   entry.ext.restoreContext();
                   entry.wasLost = false;
                   console.log('MemPilot: Restored WebGL context dynamically (Eviction disabled).');
@@ -83,6 +84,17 @@
       for (const entry of trackedContexts) {
         if (!entry.wasLost) {
           try {
+            try {
+              const dataUrl = entry.canvas.toDataURL('image/webp', 0.8);
+              if (dataUrl && dataUrl.length > 50) {
+                entry.canvas.style.backgroundImage = `url(${dataUrl})`;
+                entry.canvas.style.backgroundSize = 'contain';
+                entry.canvas.style.backgroundPosition = 'center';
+                entry.canvas.style.backgroundRepeat = 'no-repeat';
+              }
+            } catch {
+              // ignore toDataURL errors (tainted canvases)
+            }
             entry.ext.loseContext();
             entry.wasLost = true;
             console.log('MemPilot: Evicted WebGL context from hidden tab to save VRAM.');
@@ -95,6 +107,12 @@
       for (const entry of trackedContexts) {
         if (entry.wasLost) {
           try {
+            const onRestore = () => {
+              entry.canvas.style.backgroundImage = '';
+              entry.canvas.removeEventListener('webglcontextrestored', onRestore);
+            };
+            entry.canvas.addEventListener('webglcontextrestored', onRestore);
+            
             entry.ext.restoreContext();
             entry.wasLost = false;
             console.log('MemPilot: Restored WebGL context in active tab.');
@@ -118,4 +136,28 @@
     childList: true,
     subtree: true,
   });
+
+  if ((document as unknown as { wasDiscarded?: boolean }).wasDiscarded) {
+    document.addEventListener('DOMContentLoaded', () => {
+      const indicator = document.createElement('div');
+      indicator.textContent = 'MemPilot: Restored — scroll position kept';
+      Object.assign(indicator.style, {
+        position: 'fixed',
+        bottom: '10px',
+        right: '10px',
+        background: 'rgba(0,0,0,0.8)',
+        color: 'white',
+        padding: '8px 12px',
+        borderRadius: '6px',
+        fontFamily: 'system-ui, sans-serif',
+        fontSize: '12px',
+        zIndex: '999999',
+        pointerEvents: 'none',
+        transition: 'opacity 0.5s',
+      });
+      document.body?.appendChild(indicator);
+      setTimeout(() => { indicator.style.opacity = '0'; }, 3000);
+      setTimeout(() => { indicator.remove(); }, 3500);
+    });
+  }
 })();

@@ -19,7 +19,7 @@ export default defineConfig({
       input: {
         popup: resolve(__dirname, 'index.html'),
         background: resolve(__dirname, 'src/entries/background/index.ts'),
-        content: resolve(__dirname, 'src/entries/content/webglEvictor.ts'),
+        content: resolve(__dirname, 'src/entries/content/index.ts'),
       },
       output: {
         entryFileNames: '[name].js',
