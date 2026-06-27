@@ -7,7 +7,7 @@
   display: flex;
   flex-direction: column;
   align-items: stretch;
-  min-height: 320px;
+  max-height: 600px;
   background-color: var(--background-primary);
   color: var(--text-primary);
   padding: var(--space-md);
@@ -257,6 +257,8 @@
   background-color: var(--background-primary);
   position: relative;
   z-index: 1;
+  flex: 1 1 auto !important;
+  min-height: 0;
 }
 
 .section-header {
@@ -292,13 +294,14 @@
   display: flex;
   flex-direction: column;
   gap: 6px;
-  max-height: 168px;
   overflow-y: auto;
   overflow-x: hidden;
   padding-right: 4px;
   scrollbar-width: thin;
   overscroll-behavior: contain;
   background-color: var(--background-primary);
+  flex: 1 1 auto;
+  min-height: 0;
 }
 
 /* Elegant empty state */
@@ -687,10 +690,6 @@
   .popup-container {
     gap: var(--space-sm);
     padding: var(--space-sm);
-  }
-
-  .tab-list {
-    max-height: 120px;
   }
 
   .hero-card {
