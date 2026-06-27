@@ -6,14 +6,6 @@ function onUserInteraction(): void {
 
   // Signal the service worker to block discard operations
   chrome.runtime.sendMessage({ type: 'UPDATE_TAB_STATE', isDirty: true });
-
-  // Bind unload block
-  window.addEventListener('beforeunload', blockUnloadEvent);
-}
-
-function blockUnloadEvent(event: BeforeUnloadEvent): void {
-  event.preventDefault();
-  event.returnValue = ''; // Required for legacy Chrome compatibility
 }
 
 document.addEventListener('input', onUserInteraction, { capture: true, passive: true });

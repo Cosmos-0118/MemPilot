@@ -1,6 +1,6 @@
 (() => {
   const trackedContexts: Array<{
-    canvas: HTMLCanvasElement;
+    canvasRef: WeakRef<HTMLCanvasElement>;
     ext: WEBGL_lose_context;
     wasLost: boolean;
   }> = [];
@@ -19,10 +19,10 @@
       const ext = gl.getExtension('WEBGL_lose_context');
 
       if (ext) {
-        const alreadyTracked = trackedContexts.some((tc) => tc.canvas === this);
+        const alreadyTracked = trackedContexts.some((tc) => tc.canvasRef.deref() === this);
         if (!alreadyTracked) {
           trackedContexts.push({
-            canvas: this,
+            canvasRef: new WeakRef(this),
             ext,
             wasLost: false,
           });
@@ -48,9 +48,10 @@
           isEvictionEnabled = changes['webgl-eviction-enabled'].newValue !== false;
           if (!isEvictionEnabled) {
             for (const entry of trackedContexts) {
-              if (entry.wasLost) {
+              const canvas = entry.canvasRef.deref();
+              if (entry.wasLost && canvas) {
                 try {
-                  entry.canvas.style.backgroundImage = '';
+                  canvas.style.backgroundImage = '';
                   entry.ext.restoreContext();
                   entry.wasLost = false;
                   console.log('MemPilot: Restored WebGL context dynamically (Eviction disabled).');
@@ -79,18 +80,25 @@
   document.addEventListener('visibilitychange', () => {
     if (!canEvictOnPage()) return;
 
+    for (let i = trackedContexts.length - 1; i >= 0; i--) {
+      if (!trackedContexts[i].canvasRef.deref()) {
+        trackedContexts.splice(i, 1);
+      }
+    }
+
     if (document.visibilityState === 'hidden') {
       if (!isEvictionEnabled) return;
       for (const entry of trackedContexts) {
-        if (!entry.wasLost) {
+        const canvas = entry.canvasRef.deref();
+        if (!entry.wasLost && canvas) {
           try {
             try {
-              const dataUrl = entry.canvas.toDataURL('image/webp', 0.8);
+              const dataUrl = canvas.toDataURL('image/webp', 0.8);
               if (dataUrl && dataUrl.length > 50) {
-                entry.canvas.style.backgroundImage = `url(${dataUrl})`;
-                entry.canvas.style.backgroundSize = 'contain';
-                entry.canvas.style.backgroundPosition = 'center';
-                entry.canvas.style.backgroundRepeat = 'no-repeat';
+                canvas.style.backgroundImage = `url(${dataUrl})`;
+                canvas.style.backgroundSize = 'contain';
+                canvas.style.backgroundPosition = 'center';
+                canvas.style.backgroundRepeat = 'no-repeat';
               }
             } catch {
               // ignore toDataURL errors (tainted canvases)
@@ -105,13 +113,14 @@
       }
     } else if (document.visibilityState === 'visible') {
       for (const entry of trackedContexts) {
-        if (entry.wasLost) {
+        const canvas = entry.canvasRef.deref();
+        if (entry.wasLost && canvas) {
           try {
             const onRestore = () => {
-              entry.canvas.style.backgroundImage = '';
-              entry.canvas.removeEventListener('webglcontextrestored', onRestore);
+              canvas.style.backgroundImage = '';
+              canvas.removeEventListener('webglcontextrestored', onRestore);
             };
-            entry.canvas.addEventListener('webglcontextrestored', onRestore);
+            canvas.addEventListener('webglcontextrestored', onRestore);
             
             entry.ext.restoreContext();
             entry.wasLost = false;
@@ -124,18 +133,7 @@
     }
   });
 
-  const observer = new MutationObserver(() => {
-    for (let i = trackedContexts.length - 1; i >= 0; i--) {
-      if (!document.contains(trackedContexts[i].canvas)) {
-        trackedContexts.splice(i, 1);
-      }
-    }
-  });
 
-  observer.observe(document.documentElement, {
-    childList: true,
-    subtree: true,
-  });
 
   if ((document as unknown as { wasDiscarded?: boolean }).wasDiscarded) {
     document.addEventListener('DOMContentLoaded', () => {
